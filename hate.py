@@ -102,7 +102,7 @@ async def CaseConfirmation(bot, local_env, case_id, confirmation):
         hate_channel = bot.get_channel(hate_channel_id)
         hate_message = await hate_channel.fetch_message(hate_message_id)
         user = hate_message.author
-        AddWarning(local_env, user, reason)
+        AddWarning(local_env, user, reason+f': "{case[3]}"' )
     local_env['moderation']['unclosed_cases'].remove(c)
     return (True, None)
 
@@ -111,7 +111,7 @@ async def GetUserWarnings(local_env, user, message):
     info = f'Informations about user {str(user)} aka {user.display_name}' + "\n"
     info = info + "Warnings: " + str(len(user_env['warnings'])) + "\n"
     for warn in user_env['warnings']:
-        info = info + str(warn[0]) + ". Reason" + f'*"{warn[1]}"*' + "\n"
+        info = info + str(warn[0]) + ". Reason " + f'"{warn[1]}"' + "\n"
     await message.reply(info)
     return (True, None)
 
