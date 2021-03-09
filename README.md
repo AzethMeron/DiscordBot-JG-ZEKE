@@ -44,4 +44,4 @@ All rights on this script goes to WahidBawa
 ---
 # Safety warning
 
-This bot gathers some informations about users of Discord server and servers themself, most notably, for example number of messages posted by each user. Data is then saved without encryption. Instead, it uses Python built-in function hash() to replace ID of server and user with its' hash. 
+This bot gathers some informations about users of Discord server and servers themself, for example number of messages posted by each user. Data is then saved without encryption. Instead, it uses Python built-in function hash() to replace ID of server and user with its' hash. 
