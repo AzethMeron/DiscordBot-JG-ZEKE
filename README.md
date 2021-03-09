@@ -2,7 +2,11 @@
 
 Simple discord bot made to learn Discord API. 
 
-Most scripts are library scripts. 
+Most scripts are library scripts. Callable scripts are called "executable_*"
+
+executable_main.py - main script of Discord Bot
+
+executable_train_hate_classifier.py - train classifier to be used by Discord bot to scan for Hate Speech
 
 # REQUIREMENTS. Created using programs & libraries:
 
