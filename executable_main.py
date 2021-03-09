@@ -47,6 +47,12 @@ def cmd_error(reason):
     return f'Command error occured\n\
     Reason: {reason}'
     
+async def cmd_results(ctx,result):
+    if result[0]:
+        await ctx.message.add_reaction('👍')
+    else:
+        await ctx.message.reply(cmd_error(result[1]))
+    
 async def save_guild_data(bot, local_env, guild, minute):
     data.SaveGuildEnvironment(guild)
 
@@ -129,10 +135,7 @@ async def cmd_pic_post_add(ctx, internal_name, timer: int, keyword):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
         result = pic_poster.AddPicPoster(DiscordClient, local_env, ctx.guild, internal_name, timer, ctx.channel.id, keyword.replace("_"," "))
-        if result[0]:
-            await ctx.message.add_reaction('👍')
-        else:
-            await ctx.message.reply(cmd_error(result[1]))
+        await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, { 'internal_name' : internal_name} )
         
@@ -142,10 +145,7 @@ async def cmd_pic_post_remove(ctx, internal_name):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
         result = pic_poster.RemovePicPoster(DiscordClient, local_env, ctx.guild, internal_name)
-        if result[0]:
-            await ctx.message.add_reaction('👍')
-        else:
-            await ctx.message.reply(cmd_error(result[1]))
+        await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, { 'internal_name' : internal_name} )
     
@@ -155,10 +155,7 @@ async def cmd_pic_post_keyword_add(ctx, internal_name, keyword):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
         result = pic_poster.AddSearchWord(DiscordClient, local_env, ctx.guild, internal_name, keyword.replace("_"," "))
-        if result[0]:
-            await ctx.message.add_reaction('👍')
-        else:
-            await ctx.message.reply(cmd_error(result[1]))
+        await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, { 'internal_name' : internal_name} )
         
@@ -168,12 +165,74 @@ async def cmd_pic_post_keyword_remove(ctx, internal_name, keyword):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
         result = pic_poster.RemoveSearchWord(DiscordClient, local_env, ctx.guild, internal_name, keyword.replace("_"," "))
-        if result[0]:
-            await ctx.message.add_reaction('👍')
-        else:
-            await ctx.message.reply(cmd_error(result[1]))
+        await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, { 'internal_name' : internal_name} )
+        
+################################################################################
+
+
+################################## MODERATION ##################################
+
+@DiscordClient.command(name='mode_get', help="todo")
+@has_permissions(administrator=True)
+async def cmd_mode_get(ctx, user):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = await hate.GetUserWarnings(local_env, ctx.message.mentions[0], ctx.message)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+    
+@DiscordClient.command(name='mode_warn', help="todo")
+@has_permissions(administrator=True)
+async def cmd_mode_warn(ctx, user_id, reason):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = hate.AddWarning(local_env, ctx.message.mentions[0], reason.replace("_"," "))
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+    
+@DiscordClient.command(name='mode_channel', help="todo")
+@has_permissions(administrator=True)
+async def cmd_mode_channel(ctx):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = hate.SetModChannel(local_env, ctx.channel)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+    
+@DiscordClient.command(name='mode_archive', help="todo")
+@has_permissions(administrator=True)
+async def cmd_mode_archive(ctx):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = hate.SetArchiveChannel(local_env, ctx.channel)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+
+@DiscordClient.command(name='mode_confirm', help="todo")
+@has_permissions(administrator=True)
+async def cmd_mode_confirm(ctx, case_id: int, confirmation: bool):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = await hate.CaseConfirmation(DiscordClient,local_env, case_id, confirmation)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+        
+@DiscordClient.command(name='mode_purge', help="todo")
+@has_permissions(administrator=True)
+async def cmd_mode_purge(ctx):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = hate.PurgeUnclosedCases(local_env)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
 
 ################################################################################
 
@@ -197,20 +256,6 @@ async def cmd_save(ctx):
     except Exception as e:
         print(e)
         await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
-
-@DiscordClient.command(name='messages', help="Show how many messages user's sent, and how many were detected as offensive")
-@has_permissions(administrator=True)
-async def cmd_messages(ctx):
-    local_env = data.GetGuildEnvironment(ctx.guild)
-    try:
-        m = ""
-        for member in ctx.guild.members:
-            user_env = data.GetUserEnvironment(local_env, member)
-            if user_env['messages'] > 0:
-                m = m + str(member.name) + ": " + str(user_env['messages']) + " " + str(user_env['infamy']) + "\n"
-        await ctx.channel.send(m)
-    except Exception as e:
-        await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
         
 @DiscordClient.command(name='channel', help="todo")
 @has_permissions(administrator=True)
@@ -233,10 +278,7 @@ async def cmd_lang_add(ctx,emoji,language):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
         result = translator.AddEmojiTranslation(DiscordClient,local_env,emoji,language)
-        if result[0]:
-            await ctx.message.add_reaction('👍')
-        else:
-            await ctx.message.reply(cmd_error(result[1]))
+        await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, { 'emoji' : emoji, 'language': language} )
 
@@ -246,10 +288,7 @@ async def cmd_lang_remove(ctx,emoji):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
         result = translator.RemoveEmojiTranslation(DiscordClient,local_env,emoji)
-        if result[0]:
-            await ctx.message.add_reaction('👍')
-        else:
-            await ctx.message.reply(cmd_error(result[1]))
+        await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, { 'emoji' : emoji } )
 

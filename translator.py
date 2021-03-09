@@ -52,6 +52,13 @@ def Translate(tgt_lang, text):
     if translator_tgt != tgt_lang:
         translated = CustomLangs[tgt_lang][1](translated)
     return (src_lang, tgt_lang, translated)
+    
+def EnsureEnglish(text):
+    src = DetectLanguage(text)
+    if src != 'en':
+        text = RawTranslate(src,'en',text)
+    return text
+
 
 ###########################################################################
 
@@ -91,6 +98,7 @@ async def Pass(bot, local_env, reaction, user):
         if emoji in supported_languages:
             (src_lang, tgt_lang, translated) = Translate(supported_languages[emoji],reaction.message.content)
             reply = MakeMessage(translated, reaction, user, src_lang, tgt_lang)
+            await reaction.message.add_reaction(emoji)
             await reaction.message.reply(reply)
     except Exception as e:
         await log.Error(bot, e, reaction.message.guild, local_env, { 'reaction' : str(reaction.emoji), 'content': reaction.message.content } ) 

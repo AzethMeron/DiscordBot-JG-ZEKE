@@ -11,13 +11,17 @@ guild_envs = dict()
 
 def NewUserData():
     output = dict()
-    output['infamy'] = 0
     output['messages'] = 0
+    output['warnings'] = []
     return output
 
 def NewGuildEnvironment():
     output = dict()
     output['debug_channel'] = None
+    output['moderation'] = dict()
+    output['moderation']['channel'] = None
+    output['moderation']['unclosed_cases'] = []
+    output['moderation']['archive'] = None
     output['users'] = dict()
     output['pic_post'] = dict()
     output['supported_languages'] = { '🇵🇱' : 'pl', 
