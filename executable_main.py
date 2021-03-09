@@ -23,13 +23,6 @@ load_dotenv() # load environmental variables from file .env
 # Joeclinton1's fork of google-images-download
 ###################################################################
 
-###################################################################
-# Licence & stuff:
-# This program is free for private usage, as well as educational usage.
-# Credit is always required: Jakub Grzana, https://github.com/AzethMeron
-# Commercial usage of any part of this program requires special permission from creator.
-###################################################################
-
 import data
 import log
 import hate
