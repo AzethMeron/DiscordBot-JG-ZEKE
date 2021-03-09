@@ -2,10 +2,7 @@
 
 Simple discord bot made to learn Discord API. 
 
-Free for private or education usage. 
-
-Commercial usage requires my permission. No warranty granted.
-
+Most scripts are library scripts. 
 
 # REQUIREMENTS. Created using programs & libraries:
 
@@ -33,3 +30,7 @@ This program is free for private usage, as well as educational usage.
 Credit is always required: Jakub Grzana, https://github.com/AzethMeron
 
 Commercial usage of any part of this program requires special permission from creator.
+
+# UwU translator
+
+uwu_translator.py is extracted from repository of WahidBawa - https://github.com/WahidBawa/UwU-Translator
