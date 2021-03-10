@@ -58,14 +58,14 @@ async def cmd_results(ctx,result):
         await ctx.message.add_reaction('👍')
     else:
         await ctx.message.reply(cmd_error(result[1]))
-    
-async def save_guild_data(bot, local_env, guild, minute):
-    data.SaveGuildEnvironment(guild)
 
 ################################################################################
 
 
 #################################### TIMER #####################################
+
+async def save_guild_data(bot, local_env, guild, minute):
+    data.SaveGuildEnvironment(guild)
 
 # ( minutes, func(bot, local_env, guild, minute) )
 # minutes < 100000
@@ -114,8 +114,8 @@ async def on_message(message):
     # guild variable
     local_env = data.GetGuildEnvironment(message.guild)
     try:
-        await hate.Pass(DiscordClient,local_env,message)
         await levels.Pass(DiscordClient,local_env, message)
+        await hate.Pass(DiscordClient,local_env,message) # takes a lot of time, should be done last
     except Exception as e:
         await log.Error(DiscordClient, e, message.guild, local_env, { 'message' : message } )
     
@@ -133,6 +133,22 @@ async def on_reaction_add(reaction, user):
 ###########################################################################
 
 
+################################ GENERIC ##################################
+
+@DiscordClient.command(name='save', help="todo")
+@has_permissions(administrator=True)
+async def cmd_save(ctx):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        data.SaveGuildEnvironment(ctx.guild)
+        result = (True,None)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
+
+###########################################################################
+
+
 ############################### PIC POSTER ################################
 
 @DiscordClient.command(name='pic_post_add', help="todo")
@@ -140,7 +156,7 @@ async def on_reaction_add(reaction, user):
 async def cmd_pic_post_add(ctx, internal_name, timer: int, keyword):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
-        result = pic_poster.AddPicPoster(DiscordClient, local_env, ctx.guild, internal_name, timer, ctx.channel.id, keyword.replace("_"," "))
+        result = await pic_poster.AddPicPoster(DiscordClient, local_env, ctx.guild, internal_name, timer, ctx.channel.id, keyword.replace("_"," "))
         await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, { 'internal_name' : internal_name} )
@@ -252,16 +268,6 @@ async def cmd_debug(ctx):
     print("Minute: " + str(minute))
     print("Last error: " + str(traceback.format_exc()))
     print(local_env)
-    
-@DiscordClient.command(name='save', help="todo")
-@has_permissions(administrator=True)
-async def cmd_save(ctx):
-    local_env = data.GetGuildEnvironment(ctx.guild)
-    try:
-        data.SaveGuildEnvironment(ctx.guild)
-    except Exception as e:
-        print(e)
-        await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
         
 @DiscordClient.command(name='channel', help="todo")
 @has_permissions(administrator=True)

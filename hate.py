@@ -19,8 +19,14 @@ important_words = file.Load(lib_hate.GetClassifierDir()+lib_hate.name_important_
 
 def BagOfWordsClassifier(text):
     global classifier
+    # preprocess message
     text = lib_hate.PreprocessMessage(text)
+    # for performance gain: skip messages that are nearly empty after preprocessing
+    if len(text) < 3: 
+        return False
+    # get features
     features = lib_hate.feature_extractor(text,important_words)
+    # classify
     if classifier.classify(features) == 'hate':
         return True
     return False
@@ -48,7 +54,8 @@ def Detect(text):
 def MakeReport(report, display_name, user_name, guild):
     endline = "\n"
     link = f'https://discordapp.com/channels/{guild.id}/{report[1]}/{report[2]}'
-    output = f'**Case number** {report[0]}{endline}**Link to message**: {link}{endline}**Nickname of suspect**: {display_name}{endline}**Username of suspect**: {user_name}{endline}{endline}**Content of message**: *"{report[3].replace(endline," ")}"*{endline}{endline}'
+    output =  "=============================================\n"
+    output = output + f'**Case number** {report[0]}{endline}**Link to message**: {link}{endline}**Nickname of suspect**: {display_name}{endline}**Username of suspect**: {user_name}{endline}{endline}**Content of message**: *"{report[3].replace(endline," ")}"*{endline}{endline}'
     output = output + "**Hate speech scan results**:" + "\n"
     for test in report[4]:
         output = output + test[0] + ": " + str(test[1]) + "\n"
@@ -99,13 +106,20 @@ async def CaseSolve(bot, local_env, case_id, confirmation):
         await archive.send(backup_content+"\n**Verdict**: "+str(confirmation))
     # removing case from unclosed_cases 
     if confirmation:
+        # getting message that caused the problem
         hate_channel_id = case[1]
         hate_message_id = case[2]
         reason = "Hate speech detected"
         hate_channel = bot.get_channel(hate_channel_id)
         hate_message = await hate_channel.fetch_message(hate_message_id)
+        # add warning to given user
         user = hate_message.author
         AddWarning(local_env, user, reason+f': "{case[3]}"' )
+        # try to remove hate message
+        try:
+            await hate_message.delete()
+        except:
+            pass
     local_env['moderation']['unclosed_cases'].remove(c)
     return (True, None)
 
@@ -142,7 +156,7 @@ async def Pass(bot, local_env, message):
             try:
                 text = translator.EnsureEnglish(text)
             except Exception as e:
-                await log.Error(bot, e, message.guild, local_env, { 'content' : message.content } )
+                pass
             # Gathering results
             test_results = Detect(text)
             hate = False

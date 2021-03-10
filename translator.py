@@ -54,8 +54,7 @@ def Translate(tgt_lang, text):
     return (src_lang, tgt_lang, translated)
     
 def EnsureEnglish(text):
-    #src = DetectLanguage(text) #skipping language detection will cause exceptions, but no fatal ones so i think it is okay
-    src = 'auto'
+    src = DetectLanguage(text) #skipping language detection will cause exceptions, but no fatal ones so i consider it
     if src != 'en':
         text = RawTranslate(src,'en',text)
     return text
