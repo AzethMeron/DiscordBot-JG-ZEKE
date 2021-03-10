@@ -9,7 +9,7 @@ import os.path
 logdir = ".logs"
 
 async def Error(bot, exception, guild, local_env, dict_args):
-    print(exception)
+    print(traceback.format_exc())
     if not os.path.isdir(logdir):
         os.mkdir(logdir)
     try:

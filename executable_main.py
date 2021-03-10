@@ -360,6 +360,7 @@ async def cmd_lang_remove(ctx,emoji):
 
 @DiscordClient.event
 async def on_ready():
+    print("Connected. Loading data\n")
     for guild in DiscordClient.guilds:
         data.LoadGuildEnvironment(guild)
         local_env = data.GetGuildEnvironment(guild)
@@ -372,4 +373,6 @@ async def on_ready():
     print(f'{DiscordClient.user} has connected to Discord!')
     print("Number of servers (guilds) bot is connected to: "+str(len(DiscordClient.guilds)))
 
+
+print("Startup finished. Connecting...")
 DiscordClient.run(os.getenv('DISCORD_TOKEN'))
