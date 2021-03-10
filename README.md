@@ -1,5 +1,5 @@
 ---
-# DiscordBot
+# DiscordBot - JG Zeke
 
 Simple discord bot made to learn Discord API.  
 Most scripts are library scripts. Callable scripts are called "executable_*"  
