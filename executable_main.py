@@ -214,12 +214,12 @@ async def cmd_mode_archive(ctx):
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
 
-@DiscordClient.command(name='mode_confirm', help="todo")
+@DiscordClient.command(name='mode_solve', help="todo")
 @has_permissions(administrator=True)
-async def cmd_mode_confirm(ctx, case_id: int, confirmation: bool):
+async def cmd_mode_solve(ctx, case_id: int, confirmation: bool):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
-        result = await hate.CaseConfirmation(DiscordClient,local_env, case_id, confirmation)
+        result = await hate.CaseSolve(DiscordClient,local_env, case_id, confirmation)
         await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )

@@ -57,6 +57,9 @@ def MakeReport(report, display_name, user_name, guild):
 ###################################################################################
 
 def SetModChannel(local_env, channel):
+    if local_env['moderation']['channel'] != None:
+        if len(local_env['moderation']['unclosed_cases']) > 0:
+            return (False, "There's already active moderation channel with unclosed cases in it. Please solve them or purge before changing moderation channel")
     local_env['moderation']['channel'] = channel.id
     return (True, None)
     
@@ -74,7 +77,7 @@ def AddWarning(local_env, user, reason):
     user_env['warnings'].append( (dte,reason) )
     return (True, None)
     
-async def CaseConfirmation(bot, local_env, case_id, confirmation):
+async def CaseSolve(bot, local_env, case_id, confirmation):
     # searching for case in unclosed_cases
     case = None
     for c in local_env['moderation']['unclosed_cases']:
@@ -84,7 +87,7 @@ async def CaseConfirmation(bot, local_env, case_id, confirmation):
     if case == None:
         return (False, "Case not found")
     # getting message in mode channel
-    mode_channel_id = case[5]
+    mode_channel_id = local_env['moderation']['channel']
     mode_channel = bot.get_channel(mode_channel_id)
     mode_message = await mode_channel.fetch_message(case[0])
     backup_content = mode_message.content
@@ -93,7 +96,7 @@ async def CaseConfirmation(bot, local_env, case_id, confirmation):
     archive_id = local_env['moderation']['archive']
     if archive_id != None:
         archive = bot.get_channel(archive_id)
-        await archive.send(backup_content)
+        await archive.send(backup_content+"\n**Verdict**: "+str(confirmation))
     # removing case from unclosed_cases 
     if confirmation:
         hate_channel_id = case[1]
@@ -123,7 +126,6 @@ async def GetUserWarnings(local_env, user, message):
 # report[2] = id of message that violated rules
 # report[3] = content that violated rules
 # report[4] = test results
-# report[5] = id of moderation channel
 
 ###################################################################################
 
@@ -133,8 +135,8 @@ async def Pass(bot, local_env, message):
     if len(message.content) < 5:
         return
     try:
-        channel_id = local_env['moderation']['channel']
-        if channel_id != None:
+        mode_channel_id = local_env['moderation']['channel']
+        if mode_channel_id != None:
             text = message.content
             # Ensuring text is in english
             try:
@@ -148,10 +150,11 @@ async def Pass(bot, local_env, message):
                 if check[1]:
                     hate = True
                     break
+            # hate detected
             if hate:
-                channel = bot.get_channel(channel_id) # connection to 
-                sent = await channel.send("This should be editted instantly")
-                report = (sent.id, message.channel.id, message.id, message.content, test_results, channel_id)
+                mode_channel = bot.get_channel(mode_channel_id) # connection to 
+                sent = await mode_channel.send("This should be editted instantly")
+                report = (sent.id, message.channel.id, message.id, message.content, test_results)
                 await sent.edit( content=MakeReport(report, message.author.display_name, str(message.author), message.guild) )
                 local_env['moderation']['unclosed_cases'].append(report)
         
