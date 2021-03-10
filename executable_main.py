@@ -281,7 +281,7 @@ async def cmd_mode_purge(ctx):
 async def cmd_show_report(ctx, num: int):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
-        await ctx.channel.send( hate.RequestWarnReport(local_env, ctx.guild, num))
+        await ctx.channel.send( hate.RequestWarnReport(local_env, ctx.guild, num)[0] )
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
 

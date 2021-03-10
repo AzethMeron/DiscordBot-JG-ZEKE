@@ -105,7 +105,7 @@ def RequestWarnReport(local_env, guild, number):
         to_send = to_send + "There're no players exceeding safe number of warnings. Truly wonderful day it is!"
     for item in naughty_boy_list:
         to_send = to_send + str(item[0]) + " aka " + item[0].display_name + f': {len(item[1])} warnings' + "\n"
-    return to_send
+    return (to_send, len(naughty_boy_list))
     
 ###################################################################################
 
@@ -270,7 +270,9 @@ async def NagModerators(bot, local_env, guild, minute):
             WARNINGS_TO_NAG = local_env['moderation']['WARNINGS_TO_NAG']
             nagging_channel_id = local_env['moderation']['nagging']
             nagging_channel = bot.get_channel(nagging_channel_id)
-            to_send = RequestWarnReport(local_env, guild, WARNINGS_TO_NAG)
+            (to_send, num) = RequestWarnReport(local_env, guild, WARNINGS_TO_NAG)
+            if num == 0:
+                return
             await nagging_channel.send(to_send)
     except Exception as e:
         await log.Error(bot, e, guild, local_env, { } )
