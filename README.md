@@ -54,8 +54,16 @@ This bot gathers some informations about users of Discord server and servers the
 
 - Automated translation by using emojis, to any language supported by google translate.  
 - Automated searching for pictures, and posting them on given channel.  
-- Easily scaleable hate speech scanner.  
-- TODO: Reports & warnings
+- Easily scaleable hate speech scanner including own implementation of Hate Speech scanner, using Bag-of-Words model  
+- Automated warnings and reports management (doesnt support reports-by-users yet)   
+
+---
+# Performance
+
+This is hobby project, just to learn Discord API, so obviously performance isn't priority for me.  Most notable weakpoints:  
+- Hate Speech scan requires connection with google translate, online language detector, and various tests are NOT paralleled.  
+- BoW uses nltk NaiveBayesClassifier which is purely Python implementation. Switching to sklearn might vastly improve performance  
+- Downloading pictures by pic_poster can take A LOT of time and jam whole bot.   
 
 ---
 # Text corpora used to train classifier

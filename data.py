@@ -23,6 +23,8 @@ def NewGuildEnvironment():
     output['moderation']['nagging'] = None
     output['moderation']['unclosed_cases'] = []
     output['moderation']['archive'] = None
+    output['moderation']['WARNING_LENGTH_IN_DAYS'] = 28
+    output['moderation']['WARNINGS_TO_NAG'] = 3
     output['users'] = dict()
     output['pic_post'] = dict()
     output['supported_languages'] = { '🇵🇱' : 'pl', 

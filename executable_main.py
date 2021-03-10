@@ -295,6 +295,15 @@ async def cmd_mode_disable(ctx):
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
 
+@DiscordClient.command(name='mode_param_set', help="Set parameters for warning management")
+@has_permissions(administrator=True)
+async def cmd_mode_param_set(ctx, number_of_warning: int, length_in_days: int):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = hate.SetParameters(local_env, number_of_warning, length_in_days)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
 
 ################################################################################
 
