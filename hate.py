@@ -12,6 +12,16 @@ import lib_hate
 
 # by Jakub Grzana
 
+WARNINGS_TO_NAG = 3
+WARNING_LENGTH_IN_DAYS = 1
+
+###################################################################################
+
+def profanity_internal(text):
+    if profanity_check.predict([text]) == [1]:
+        return True
+    return False
+
 ###################################################################################
 
 classifier = file.Load(lib_hate.GetClassifierDir()+lib_hate.name_classifier)
@@ -33,21 +43,23 @@ def BagOfWordsClassifier(text):
 
 ###################################################################################
 
+# (name, bool_func(text), weight) weights are unused now
+Tests = [ ("Profanity Check", profanity_internal, 1),
+("Hate Speech Classifier", BagOfWordsClassifier, 1) ]
+
 def BoolDetect(text):
-    # Hate detection
-    if profanity_check.predict([text]) == [1]:
-        return True
-    if BagOfWordsClassifier(text):
-        return True
+    global Tests
+    for test in Tests:
+        if test[1](text):
+            return True
     return False
 
 def Detect(text):
-    # checks
-    [profanity] = profanity_check.predict([text])
-    bow = BagOfWordsClassifier(text)
-    # return
-    return [ ("Profanity Check", profanity),
-    ("Hate Speech Classifier", bow) ]
+    global Tests
+    output = []
+    for test in Tests:
+        output.append( (test[0], test[1](text), test[2]) )
+    return output
     
 ###################################################################################
 
@@ -78,10 +90,30 @@ def PurgeUnclosedCases(local_env):
     local_env['moderation']['unclosed_cases'] = []
     return (True, None)
     
-def AddWarning(local_env, user, reason):
+def DisableModeration(local_env):
+    if local_env['moderation']['channel'] == None:
+        return (False, "Moderation isn't enabled anyway")
+    local_env['moderation']['channel'] = None
+    local_env['moderation']['unclosed_cases'] = []
+    local_env['moderation']['archive'] = None
+    return (True,None)
+    
+async def AddWarning(local_env, user, reason):
     dte = date.today()
     user_env = data.GetUserEnvironment(local_env, user)
     user_env['warnings'].append( (dte,reason) )
+    if True:
+        if not user.dm_channel:
+            await user.create_dm()
+        num = len(user_env['warnings'])
+        to_send = f'**Dear {user.display_name}**' + "\n" +\
+        "I'm sad to report you got warning." + "\n" +\
+        f'Reason: *"{reason}"*' + "\n" +\
+        f'This is yours {num} warning ' 
+        if num >= WARNINGS_TO_NAG:
+            to_send = to_send + "which means I will nag administration to deal with your case"
+        to_send = to_send + "\n" + "No heart feelings"
+        await user.send(to_send)
     return (True, None)
     
 async def CaseSolve(bot, local_env, case_id, confirmation):
@@ -109,12 +141,12 @@ async def CaseSolve(bot, local_env, case_id, confirmation):
         # getting message that caused the problem
         hate_channel_id = case[1]
         hate_message_id = case[2]
-        reason = "Hate speech detected"
+        reason = "Hate speech detected in " + f'"{case[3]}"'
         hate_channel = bot.get_channel(hate_channel_id)
         hate_message = await hate_channel.fetch_message(hate_message_id)
         # add warning to given user
         user = hate_message.author
-        AddWarning(local_env, user, reason+f': "{case[3]}"' )
+        await AddWarning(local_env, user, reason )
         # try to remove hate message
         try:
             await hate_message.delete()
@@ -144,8 +176,6 @@ async def GetUserWarnings(local_env, user, message):
 ###################################################################################
 
 async def Pass(bot, local_env, message):
-    if message.author.bot:
-        return
     if len(message.content) < 5:
         return
     try:
@@ -175,4 +205,6 @@ async def Pass(bot, local_env, message):
     except Exception as e:
         await log.Error(bot, e, message.guild, local_env, { 'content' : message.content } )
   
-
+async def RemoveOutdatedWarnings(bot, local_env, guild, minute):
+    for member in guild.members:
+        return

@@ -5,8 +5,6 @@ import log
 # by Jakub Grzana
 
 async def Pass(bot, local_env, message):
-    if message.author.bot:
-        return
     try:
         user_env = data.GetUserEnvironment(local_env, message.author)
         user_env['messages'] = user_env['messages'] + 1

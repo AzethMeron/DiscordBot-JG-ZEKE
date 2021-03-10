@@ -14,7 +14,7 @@ import data
 # ]
 
 #####################################
-WordLimit = 4000 # upper limit of words to be used
+WordLimit = 1500 # upper limit of words to be used
 name_train_set=lib_hate.GetClassifierDir()+".train_set"
 name_test_set=lib_hate.GetClassifierDir()+".test_set"
 #####################################

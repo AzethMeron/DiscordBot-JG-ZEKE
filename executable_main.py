@@ -32,6 +32,8 @@ import pic_poster
 import temp
 from discord.ext.commands import CommandNotFound
 
+version = "JG Zeke bot\n\
+Version 0.0.1"
 
 intents = discord.Intents.default()
 intents.members = True
@@ -72,6 +74,7 @@ async def save_guild_data(bot, local_env, guild, minute):
 Timers = []
 Timers.append( (60, save_guild_data) )
 Timers.append( (1, pic_poster.Pass) )
+Timers.append( (1440, hate.RemoveOutdatedWarnings) )
 
 minute = -1
 @tasks.loop(minutes=1)
@@ -106,8 +109,7 @@ async def on_member_join(member):
 
 @DiscordClient.event
 async def on_message(message):
-    # exit if message was sent by this Bot
-    if message.author == DiscordClient.user:
+    if message.author.bot:
         return
     # enforce execution of commands
     await DiscordClient.process_commands(message)
@@ -143,6 +145,13 @@ async def cmd_save(ctx):
         data.SaveGuildEnvironment(ctx.guild)
         result = (True,None)
         await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
+        
+@DiscordClient.command(name='version', help="Display version of bot")
+async def cmd_version(ctx):
+    try:
+        await ctx.message.reply(version)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
 
@@ -211,7 +220,7 @@ async def cmd_mode_get(ctx, user):
 async def cmd_mode_warn(ctx, user_id, reason):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
-        result = hate.AddWarning(local_env, ctx.message.mentions[0], reason.replace("_"," "))
+        result = await hate.AddWarning(local_env, ctx.message.mentions[0], reason.replace("_"," "))
         await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
@@ -255,6 +264,17 @@ async def cmd_mode_purge(ctx):
         await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+
+@DiscordClient.command(name='mode_disable', help="Purge uncloded cases and remove moderation channels")
+@has_permissions(administrator=True)
+async def cmd_mode_disable(ctx):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = hate.DisableModeration(local_env)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+
 
 ################################################################################
 
