@@ -77,4 +77,4 @@ def GetUserEnvironment(local_env, user):
         return local_env['users'][hash(user.id)]
 
 def StripUsersData(local_env, members):
-    local_env['users'] = { hash(member.id) : local_env['users'][hash(member.id)] for member in members }
+    local_env['users'] = { hash(member.id) : GetUserEnvironment(local_env, member) for member in members }

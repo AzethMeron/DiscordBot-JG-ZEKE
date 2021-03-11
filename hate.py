@@ -152,7 +152,7 @@ async def AddWarning(local_env, user, reason):
         f'This is yours {num} warning ' 
         if num >= WARNINGS_TO_NAG:
             to_send = to_send + "which means I will nag administration to deal with your case"
-        to_send = to_send + "\n" + "No heart feelings"
+        to_send = to_send + "\n" + "No hard feelings"
         await user.send(to_send)
     return (True, None)
     
