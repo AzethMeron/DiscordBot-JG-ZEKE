@@ -56,6 +56,7 @@ This bot gathers some informations about users of Discord server and servers the
 - Automated searching for pictures, and posting them on given channel.  
 - Easily scaleable hate speech scanner including own implementation of Hate Speech scanner, using Bag-of-Words model  
 - Automated warnings and reports management (doesnt support reports-by-users yet)   
+- Levels like in MEE6
 
 ---
 # TO-DO
