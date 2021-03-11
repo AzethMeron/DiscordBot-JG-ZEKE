@@ -170,7 +170,6 @@ async def CaseSolve(bot, local_env, case_id, confirmation):
     mode_channel = bot.get_channel(mode_channel_id)
     mode_message = await mode_channel.fetch_message(case[0])
     backup_content = mode_message.content
-    await mode_message.edit(content="Case solved")
     # back-up in archive
     archive_id = local_env['moderation']['archive']
     if archive_id != None:
@@ -182,8 +181,12 @@ async def CaseSolve(bot, local_env, case_id, confirmation):
         hate_channel_id = case[1]
         hate_message_id = case[2]
         reason = "Hate speech detected in " + f'"{case[3]}"'
-        hate_channel = bot.get_channel(hate_channel_id)
-        hate_message = await hate_channel.fetch_message(hate_message_id)
+        try:
+            hate_channel = bot.get_channel(hate_channel_id)
+            hate_message = await hate_channel.fetch_message(hate_message_id)
+        except:
+            local_env['moderation']['unclosed_cases'].remove(c)
+            return (False, "Failed to get message that violated rules. It's likely removed.\nWarning wasn't issued. Sadly you must deal with it on your own")
         # add warning to given user
         user = hate_message.author
         await AddWarning(local_env, user, reason )
@@ -192,6 +195,7 @@ async def CaseSolve(bot, local_env, case_id, confirmation):
             await hate_message.delete()
         except:
             pass
+    await mode_message.edit(content="Case solved")
     local_env['moderation']['unclosed_cases'].remove(c)
     return (True, None)
 
