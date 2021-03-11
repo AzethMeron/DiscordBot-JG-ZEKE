@@ -23,6 +23,7 @@ def NewGuildEnvironment():
     output['moderation']['nagging'] = None
     output['moderation']['unclosed_cases'] = []
     output['moderation']['archive'] = None
+    output['moderation']['verbose_warnings'] = True
     output['moderation']['WARNING_LENGTH_IN_DAYS'] = 28
     output['moderation']['WARNINGS_TO_NAG'] = 3
     output['users'] = dict()
@@ -74,4 +75,6 @@ def GetUserEnvironment(local_env, user):
     else:
         local_env['users'][hash(user.id)] = NewUserData()
         return local_env['users'][hash(user.id)]
-        
+
+def StripUsersData(local_env, members):
+    local_env['users'] = { hash(member.id) : local_env['users'][hash(member.id)] for member in members }

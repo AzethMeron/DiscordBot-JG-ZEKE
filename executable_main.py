@@ -76,7 +76,6 @@ Timers.append( (60, hate.RemoveOutdatedWarnings) )
 Timers.append( (1440, hate.NagModerators) )
 Timers.append( (60, save_guild_data) )
 Timers.append( (1, pic_poster.Pass) )
-Timers.append( (1440, log.PurgeLogDir) )
 
 minute = -1
 @tasks.loop(minutes=1)
@@ -115,13 +114,15 @@ async def on_message(message):
         return
     # enforce execution of commands
     await DiscordClient.process_commands(message)
-    # guild variable
-    local_env = data.GetGuildEnvironment(message.guild)
-    try:
-        await levels.Pass(DiscordClient,local_env, message)
-        await hate.Pass(DiscordClient,local_env,message) # takes a lot of time, should be done last
-    except Exception as e:
-        await log.Error(DiscordClient, e, message.guild, local_env, { 'message' : message } )
+    try: # guild message
+        local_env = data.GetGuildEnvironment(message.guild)
+        try:
+            await levels.Pass(DiscordClient,local_env, message)
+            await hate.Pass(DiscordClient,local_env,message) # takes a lot of time, should be done last
+        except Exception as e:
+            await log.Error(DiscordClient, e, message.guild, local_env, { 'message' : message } )
+    except: # private message
+        pass 
     
 @DiscordClient.event
 async def on_reaction_add(reaction, user):
@@ -145,6 +146,17 @@ async def cmd_save(ctx):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
         data.SaveGuildEnvironment(ctx.guild)
+        result = (True,None)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
+        
+@DiscordClient.command(name='strip_user_data', help="Remove all data of users who're no longer in this server")
+@has_permissions(administrator=True)
+async def cmd_strip(ctx):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        data.StripUsersData(local_env,ctx.guild.members)
         result = (True,None)
         await cmd_results(ctx,result)
     except Exception as e:
@@ -298,10 +310,10 @@ async def cmd_mode_disable(ctx):
 
 @DiscordClient.command(name='mode_param_set', help="Set parameters for warning management")
 @has_permissions(administrator=True)
-async def cmd_mode_param_set(ctx, number_of_warning: int, length_in_days: int):
+async def cmd_mode_param_set(ctx, number_of_warning: int, length_in_days: int, verbose_warnings: bool):
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
-        result = hate.SetParameters(local_env, number_of_warning, length_in_days)
+        result = hate.SetParameters(local_env, number_of_warning, length_in_days, verbose_warnings)
         await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
@@ -365,10 +377,8 @@ async def on_ready():
     for guild in DiscordClient.guilds:
         data.LoadGuildEnvironment(guild)
         local_env = data.GetGuildEnvironment(guild)
-        for member in guild.members:
-            if hash(member.id) not in local_env['users']:
-                local_env['users'][hash(member.id)] = data.NewUserData()
-        
+    log.PurgeLogDir()
+    
     each_minute.start()
     print("Initialisation finished")
     print(f'{DiscordClient.user} has connected to Discord!')

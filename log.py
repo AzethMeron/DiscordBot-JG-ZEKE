@@ -9,7 +9,7 @@ import shutil
 
 logdir = ".logs"
 
-async def PurgeLogDir(bot, local_env, guild, minute):
+def PurgeLogDir():
     if os.path.isdir(logdir):
         shutil.rmtree(logdir)
 

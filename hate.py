@@ -142,7 +142,7 @@ async def AddWarning(local_env, user, reason):
     dte = date.today()
     user_env = data.GetUserEnvironment(local_env, user)
     user_env['warnings'].append( (dte,reason) )
-    if True:
+    if local_env['moderation']['verbose_warnings']:
         if not user.dm_channel:
             await user.create_dm()
         num = len(user_env['warnings'])
@@ -211,9 +211,10 @@ async def GetUserWarnings(local_env, user, message):
     await author.dm_channel.send(info)
     return (True, None)
     
-def SetParameters(local_env, num, length):
+def SetParameters(local_env, num, length, verbose_warnings):
     local_env['moderation']['WARNINGS_TO_NAG'] = num
     local_env['moderation']['WARNING_LENGTH_IN_DAYS'] = length
+    local_env['moderation']['verbose_warnings'] = verbose_warnings
     return (True, None)
 
 ###################################################################################
@@ -256,7 +257,7 @@ async def Pass(bot, local_env, message):
         
     except Exception as e:
         await log.Error(bot, e, message.guild, local_env, { 'content' : message.content } )
-  
+    
 async def RemoveOutdatedWarnings(bot, local_env, guild, minute):
     try:
         WARNING_LENGTH_IN_DAYS = local_env['moderation']['WARNING_LENGTH_IN_DAYS']
