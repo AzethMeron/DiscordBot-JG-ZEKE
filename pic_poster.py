@@ -64,7 +64,8 @@ def RequestPictures(search_words):
 def AddPicPoster(bot,local_env,guild, pic_poster_name, timer, channel_id, search_word):
     if len(local_env['pic_post']) >= MAX_PIC_POSTERS:
         return (False, "Too many pic-posters on this server")
-    if hate.BoolDetect(search_word):
+    results = hate.Detect(search_word)
+    if hate.BoolParse( hate.ParseWeight(results) ):
             return (False, "Keyword contains hate speech or offensive language")
     else:
         local_env['pic_post'][pic_poster_name] = {

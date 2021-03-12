@@ -70,6 +70,18 @@ def BagOfWordsClassifier(text):
 Tests = [ ("Profanity Check", profanity_internal, 1),
 ("Hate Speech Classifier", BagOfWordsClassifier, 1) ]
 
+def BoolParse(weight_results):
+    return bool(round(weight_results))
+
+def ParseWeight(results):
+    weight = 0
+    total_weight = 0
+    for result in results:
+        total_weight += result[2]
+        if result[1]:
+            weight += result[2]
+    return round(weight / total_weight,1)
+
 def BoolDetect(text):
     global Tests
     for test in Tests:
@@ -92,12 +104,13 @@ def MakeReport(report, display_name, user_name, guild, submitted_by):
     link = f'https://discordapp.com/channels/{guild.id}/{report[1]}/{report[2]}'
     output =  "=============================================\n"
     output = output + f'**Case number** {report[0]}{endline}**Link to message**: {link}{endline}**Suspect**: {user_name} aka {display_name}{endline}{endline}**Content of message**: *"{report[3].replace(endline," ")}"*{endline}{endline}'
-    output = output + "**Hate speech scan results**:" + "\n"
     if type(report[4]) == type([]):
+        weight = ParseWeight(report[4])
+        output = output + "**Hate speech scan results**: weighted " + str(weight) + "\n"
         for test in report[4]:
             output = output + test[0] + ": " + str(test[1]) + "\n"
     else:
-        output = output + f'Reported by user: {str(submitted_by)} aka {submitted_by.display_name}'
+        output = output + f'**Reported by user**: {str(submitted_by)} aka {submitted_by.display_name}'
     return output
     
 def RequestWarnReport(local_env, guild, number):
