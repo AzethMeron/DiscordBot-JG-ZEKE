@@ -64,7 +64,8 @@ This bot gathers some informations about users of Discord server and servers the
 - Proper interface (commands), for now all are hardcoded for administrators and syntax is trash
 - Text corpus used by me to train classifier was small, unbalanced and containing mostly sexism. To be remade.
 - Definitely not all exceptions are properly handled
-- Managing reports by users
+- Managing reports made by users
+- Splitting messages; some messages are scallable and might overflow 2000 characters limit of Discord
 
 ---
 # Performance
