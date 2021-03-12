@@ -30,6 +30,7 @@ import translator
 import levels
 import pic_poster
 import temp
+import reaction_roles
 from discord.ext.commands import CommandNotFound
 
 version = "JG Zeke bot\n\
@@ -132,9 +133,56 @@ async def on_reaction_add(reaction, user):
     #print(reaction.emoji)
     local_env = data.GetGuildEnvironment(reaction.message.guild)
     try:
-        await translator.Pass(DiscordClient, local_env,reaction,user)
+        await translator.Pass(DiscordClient, local_env, reaction, user)
+        await reaction_roles.AddEmoji(DiscordClient, local_env, reaction, user)
     except Exception as e:
         await log.Error(DiscordClient, e, reaction.message.guild, local_env, { 'reaction' : reaction, 'user' : user } )
+
+@DiscordClient.event        
+async def on_reaction_remove(reaction, user):
+    if user.bot:
+        return 
+    #print(reaction.emoji)
+    local_env = data.GetGuildEnvironment(reaction.message.guild)
+    try:
+        await reaction_roles.RemoveEmoji(DiscordClient, local_env, reaction, user)
+    except Exception as e:
+        await log.Error(DiscordClient, e, reaction.message.guild, local_env, { 'reaction' : reaction, 'user' : user } )
+
+###########################################################################
+
+
+############################# REACTION ROLES ##############################
+
+@DiscordClient.command(name='reaction_role_add', help="TODO")
+@has_permissions(administrator=True)
+async def cmd_reaction_role_add(ctx, emoji):
+    local_env = data.GetGuildEnvironment(ctx.guild) 
+    try:
+        result = reaction_roles.AddRole(local_env, emoji, ctx.message.raw_role_mentions[0])
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
+
+@DiscordClient.command(name='reaction_role_remove', help="TODO")
+@has_permissions(administrator=True)
+async def cmd_reaction_role_remove(ctx, emoji):
+    local_env = data.GetGuildEnvironment(ctx.guild) 
+    try:
+        result = reaction_roles.RemoveRole(local_env, emoji)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
+ 
+@DiscordClient.command(name='reaction_role_tmp_set', help="TODO")
+@has_permissions(administrator=True)
+async def cmd_raction_role_tmp(ctx):
+    local_env = data.GetGuildEnvironment(ctx.guild) 
+    try:
+        result = reaction_roles.SetMessage(local_env, ctx.message)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {'context' : ctx} )
 
 ###########################################################################
 
@@ -169,8 +217,8 @@ async def cmd_version(ctx):
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, None, {'context' : ctx} )
         
-@DiscordClient.command(name='var', help="Display variables of current guild")
-async def cmd_var(ctx):
+@DiscordClient.command(name='vars', help="Display variables of current guild")
+async def cmd_vars(ctx):
     try:
         to_send = data.GuildInfo(ctx.guild)
         await ctx.message.reply(to_send)
@@ -280,8 +328,18 @@ async def cmd_mode_channel(ctx):
         await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
-    
-@DiscordClient.command(name='mode_nagging', help="Set this channel as moderation channel")
+
+@DiscordClient.command(name='mode_ur_channel', help="Set this channel as channel for user report")
+@has_permissions(administrator=True)
+async def cmd_mode_ur_channel(ctx):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        result = hate.SetUserReportsChannel(local_env, ctx.channel)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+
+@DiscordClient.command(name='mode_nagging', help="Set this channel as channel to nag moderators")
 @has_permissions(administrator=True)
 async def cmd_mode_nagging(ctx):
     local_env = data.GetGuildEnvironment(ctx.guild)
@@ -346,6 +404,16 @@ async def cmd_mode_param_set(ctx, number_of_warning: int, length_in_days: int, v
     local_env = data.GetGuildEnvironment(ctx.guild)
     try:
         result = hate.SetParameters(local_env, number_of_warning, length_in_days, verbose_warnings)
+        await cmd_results(ctx,result)
+    except Exception as e:
+        await log.Error(DiscordClient, e, ctx.guild, local_env, {} )
+
+@DiscordClient.command(name='report', help="Report message to moderators")
+async def cmd_mode_param_set(ctx, message_id: int):
+    local_env = data.GetGuildEnvironment(ctx.guild)
+    try:
+        message = await ctx.channel.fetch_message(message_id)
+        result = await hate.ReportMessage(DiscordClient, local_env, ctx.message, message)
         await cmd_results(ctx,result)
     except Exception as e:
         await log.Error(DiscordClient, e, ctx.guild, local_env, {} )

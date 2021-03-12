@@ -30,9 +30,13 @@ def NewGuildEnvironment():
     output['moderation']['verbose_warnings'] = True
     output['moderation']['warnings_length_in_days'] = 28
     output['moderation']['warnings_to_nag'] = 3
+    output['moderation']['user_reports'] = None
     output['lvl_module_verbose'] = False
     output['users'] = dict()
     output['pic_post'] = dict()
+    output['reaction_roles'] = dict()
+    output['reaction_roles']['main'] = dict()
+    output['reaction_roles']['message'] = (None,None) # channel_id, message_id
     output['supported_languages'] = { '🇵🇱' : 'pl', 
      '🇬🇧' : 'en', 
      '🇺🇸' : 'en'

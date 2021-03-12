@@ -28,6 +28,9 @@ import lib_hate
 #                                       Administration can requrest raport at any moment 
 # Note this bot will NOT take any real actions. It is programmed to be support for administration, not to do their job. It would be kinda dangerous
 # to give too many permission to bot. Thus, JG Zeke is purely advisor bot 
+#
+#
+# Edit: Meh, user reports are kinda "hacked into" this bot, thus code got complicated :/
 ####################################################################################################################################################
 
 ###################################################################################
@@ -84,14 +87,17 @@ def Detect(text):
 ###################################################################################
 # Internals
 
-def MakeReport(report, display_name, user_name, guild):
+def MakeReport(report, display_name, user_name, guild, submitted_by):
     endline = "\n"
     link = f'https://discordapp.com/channels/{guild.id}/{report[1]}/{report[2]}'
     output =  "=============================================\n"
-    output = output + f'**Case number** {report[0]}{endline}**Link to message**: {link}{endline}**Nickname of suspect**: {display_name}{endline}**Username of suspect**: {user_name}{endline}{endline}**Content of message**: *"{report[3].replace(endline," ")}"*{endline}{endline}'
+    output = output + f'**Case number** {report[0]}{endline}**Link to message**: {link}{endline}**Suspect**: {user_name} aka {display_name}{endline}{endline}**Content of message**: *"{report[3].replace(endline," ")}"*{endline}{endline}'
     output = output + "**Hate speech scan results**:" + "\n"
-    for test in report[4]:
-        output = output + test[0] + ": " + str(test[1]) + "\n"
+    if type(report[4]) == type([]):
+        for test in report[4]:
+            output = output + test[0] + ": " + str(test[1]) + "\n"
+    else:
+        output = output + f'Reported by user: {str(submitted_by)} aka {submitted_by.display_name}'
     return output
     
 def RequestWarnReport(local_env, guild, number):
@@ -106,6 +112,19 @@ def RequestWarnReport(local_env, guild, number):
     for item in naughty_boy_list:
         to_send = to_send + str(item[0]) + " aka " + item[0].display_name + f': {len(item[1])} warnings' + "\n"
     return (to_send, len(naughty_boy_list))
+    
+async def CreateCase(local_env, message, test_results, mode_channel, submitted_by=None):
+    sent = await mode_channel.send("This should be editted instantly")
+    report = (sent.id, message.channel.id, message.id, message.content, test_results)
+    await sent.edit( content=MakeReport(report, message.author.display_name, str(message.author), message.guild, submitted_by) )
+    local_env['moderation']['unclosed_cases'].append(report)
+    
+def FindCase(local_env, channel_id, message_id):
+    for item in local_env['moderation']['unclosed_cases']:
+        if item[1] == channel_id:
+            if item[2] == message_id:
+                return item
+    return None
     
 ###################################################################################
 
@@ -122,6 +141,10 @@ def SetArchiveChannel(local_env, channel):
    
 def SetNaggingChannel(local_env, channel):
     local_env['moderation']['nagging'] = channel.id
+    return (True, None)
+    
+def SetUserReportsChannel(local_env, channel):
+    local_env['moderation']['user_reports'] = channel.id
     return (True, None)
 
 def PurgeUnclosedCases(local_env):
@@ -159,10 +182,7 @@ async def AddWarning(local_env, user, reason):
 async def CaseSolve(bot, local_env, case_id, confirmation):
     # searching for case in unclosed_cases
     case = None
-    for c in local_env['moderation']['unclosed_cases']:
-        if c[0] == case_id:
-            case = c
-            break
+    case = FindCase(local_env, local_env['moderation']['channel'], case_id)
     if case == None:
         return (False, "Case not found")
     # getting message in mode channel
@@ -216,6 +236,16 @@ def SetParameters(local_env, num, length, verbose_warnings):
     local_env['moderation']['warnings_length_in_days'] = length
     local_env['moderation']['verbose_warnings'] = verbose_warnings
     return (True, None)
+    
+async def ReportMessage(bot, local_env, message_reporting, message_reported):
+    if FindCase(local_env, message_reported.channel.id, message_reported.id) != None:
+        return (True, None)
+    mode_channel_id = local_env['moderation']['user_reports']
+    if mode_channel_id == None:
+        return (False, "Sorry, reports are not enabled on this server")
+    mode_channel = bot.get_channel(mode_channel_id) # connection to 
+    await CreateCase(local_env, message_reported, None, mode_channel, message_reporting.author)
+    return (True, None)
 
 ###################################################################################
 
@@ -224,7 +254,7 @@ def SetParameters(local_env, num, length, verbose_warnings):
 # report[1] = id of channel in which message violated rules
 # report[2] = id of message that violated rules
 # report[3] = content that violated rules
-# report[4] = test results
+# report[4] = test results (if made by bot) or None if submited by user
 
 ###################################################################################
 
@@ -250,10 +280,7 @@ async def Pass(bot, local_env, message):
             # hate detected
             if hate:
                 mode_channel = bot.get_channel(mode_channel_id) # connection to 
-                sent = await mode_channel.send("This should be editted instantly")
-                report = (sent.id, message.channel.id, message.id, message.content, test_results)
-                await sent.edit( content=MakeReport(report, message.author.display_name, str(message.author), message.guild) )
-                local_env['moderation']['unclosed_cases'].append(report)
+                await CreateCase(local_env, message, test_results, mode_channel)
         
     except Exception as e:
         await log.Error(bot, e, message.guild, local_env, { 'content' : message.content } )
