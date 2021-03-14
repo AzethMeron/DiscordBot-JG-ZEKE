@@ -19,8 +19,6 @@ lemmatize = nltk.WordNetLemmatizer().lemmatize
 ###################################################################################
 
 ###################################################################################
-name_classifier="trained_nltk_naive_bayes_bow"
-name_important_words="important_words"
 classifier_dir = "classifier"
 ###################################################################################
 

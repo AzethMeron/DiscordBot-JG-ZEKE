@@ -63,9 +63,10 @@ This bot gathers some informations about users of Discord server and servers the
 # TO-DO
 
 - Proper interface (commands), for now all are hardcoded for administrators and syntax is trash
-- Text corpus used by me to train classifier was small, unbalanced and containing mostly sexism. To be remade.
+- Text corpus used by me to train classifier was small, unbalanced and containing mostly sexism. To be remade. There should be classifier for: general Hate Speech, Sexism, Racism and Offensive Language. I've implemented weight system for them. Profanity check is good at detecting slurs - but it's oversensitive, so should be with lower weight.
 - Definitely not all exceptions are properly handled
 - Splitting messages; some messages are scallable and might overflow 2000 characters limit of Discord
+- Remake for pic-post, cuz downloading so much data causes exceptions. 
 
 ---
 # Performance

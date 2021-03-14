@@ -39,5 +39,5 @@ test_vector = [ (lib_hate.feature_extractor(lib_hate.PreprocessMessage(row['text
 print("Score: "+ str(nltk.classify.accuracy(classifier, test_vector)))
 
 # Saving classifier to be used by discord bot
-file.Save(lib_hate.GetClassifierDir()+lib_hate.name_classifier,classifier)
-file.Save(lib_hate.GetClassifierDir()+lib_hate.name_important_words,important_words)
+file.Save(lib_hate.GetClassifierDir()+"trained_nltk_naive_bayes_bow",classifier)
+file.Save(lib_hate.GetClassifierDir()+"important_words",important_words)

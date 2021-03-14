@@ -44,11 +44,7 @@ def profanity_internal(text):
 ###################################################################################
 # Bag-of-Words hate speech detection
 
-classifier = file.Load(lib_hate.GetClassifierDir()+lib_hate.name_classifier)
-important_words = file.Load(lib_hate.GetClassifierDir()+lib_hate.name_important_words)
-
-def BagOfWordsClassifier(text):
-    global classifier
+def BagOfWordsClassifier(text, classifier, important_words):
     # preprocess message
     text = lib_hate.PreprocessMessage(text)
     # for performance gain: skip messages that are nearly empty after preprocessing
@@ -63,12 +59,20 @@ def BagOfWordsClassifier(text):
 
 ###################################################################################
 
+general_cl = file.Load(lib_hate.GetClassifierDir()+"general_classifier")
+general_iw = file.Load(lib_hate.GetClassifierDir()+"general_important_words")
+
+def GeneralBoW(text):
+    return BagOfWordsClassifier(text, general_cl, general_iw)
+
+###################################################################################
+
 
 ####################### HATE SPEECH DETECTION - HEADQUARTER #######################
 
 # (name, bool_func(text), weight) weights are unused now
 Tests = [ ("Profanity Check", profanity_internal, 1),
-("Hate Speech Classifier", BagOfWordsClassifier, 1) ]
+("General Hate Speech", GeneralBoW, 1) ]
 
 def BoolParse(weight_results):
     return bool(round(weight_results))
