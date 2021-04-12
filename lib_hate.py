@@ -1,5 +1,3 @@
-import twitter
-import pandas 
 import random
 import nltk
 import re
