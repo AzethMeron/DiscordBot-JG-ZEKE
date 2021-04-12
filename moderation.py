@@ -72,8 +72,8 @@ def GeneralBoW(text):
 ####################### HATE SPEECH DETECTION - HEADQUARTER #######################
 
 # (name, bool_func(text), weight) weights are unused now
-Tests = [ ("Profanity Check", profanity_internal, 1),
-("General Hate Speech", GeneralBoW, 1) ]
+Tests = [ ("Profanity Check", profanity_internal, 50),
+("General Hate Speech", GeneralBoW, 50) ]
 
 def BoolParse(weight_results):
     return bool(round(weight_results))
@@ -297,11 +297,7 @@ async def Pass(bot, local_env, message):
                 pass
             # Gathering results
             test_results = Detect(text)
-            hate = False
-            for check in test_results:
-                if check[1]:
-                    hate = True
-                    break
+            hate = BoolParse( ParseWeight(test_results) )
             # hate detected
             if hate:
                 mode_channel = bot.get_channel(mode_channel_id) # connection to 
